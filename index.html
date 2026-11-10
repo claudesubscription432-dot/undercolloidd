@@ -313,7 +313,7 @@ function reveal(){
 function ask(){
   const i=S.order[S.qTurn], name=esc(nameOf(i));
   const prog=`<div class="center"><span class="tag">Round ${S.round} · Question ${S.qTurn+1} of ${S.order.length}</span></div>`;
-  const yesNo = who => `<p class="center" style="margin-top:14px">${who}</p><div class="row"><button class="btn teal" onclick="answer('Yes')">👍 Yes</button><button class="btn" style="background:var(--red);box-shadow:0 5px 0 #b8304a" onclick="answer('No')">👎 No</button></div>`;
+  const yesNo = who => `<p class="center" style="margin-top:14px">${who}</p><div class="row"><button class="btn teal" onclick="answer('Yes')">👍 Yes</button><button class="btn" style="background:var(--red);box-shadow:0 5px 0 #b8304a" onclick="answer('No')">👎 No</button></div><button class="btn ghost" onclick="openOv('cheat')">📖 Not sure? Check the cheat sheet</button>`;
   if(S.multi){
     const isHost = i===0;
     return `${prog}

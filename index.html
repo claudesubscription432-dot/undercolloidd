@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UNDERCOLLOID!</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg1:#2b1d6b;--bg2:#0f5c8c;--ink:#1d1640;--muted:#6b6590;--acc:#ff8a3d;--acc-d:#c75e1c;--teal:#3dd6c6;--teal-d:#1f9c90;--red:#ff4f6d;--green:#2fbf71}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:Fredoka,system-ui,sans-serif;background:linear-gradient(160deg,var(--bg1),var(--bg2));min-height:100vh;color:#fff;overflow-x:hidden}
+.bubbles{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.bubbles span{position:absolute;bottom:-60px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);animation:rise linear infinite}
+@keyframes rise{to{transform:translateY(-115vh)}}
+#app{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:22px 18px 48px}
+h1{font-size:38px;margin:4px 0 2px;text-align:center;line-height:1.02;letter-spacing:.5px}
+h2{font-size:26px;margin:0 0 8px;line-height:1.1}
+h3{margin:0 0 6px;font-size:19px}
+p{margin:6px 0;line-height:1.4}
+.sub{text-align:center;opacity:.85;font-size:17px;margin-bottom:12px}
+.tag{display:inline-block;background:rgba(255,255,255,.16);border-radius:99px;padding:4px 12px;font-size:14px;font-weight:500}
+.center{text-align:center}
+.panel{background:#fff;color:var(--ink);border-radius:22px;padding:20px;box-shadow:0 10px 30px rgba(0,0,0,.25);margin:14px 0}
+.panel .muted{color:var(--muted)}
+.btn{display:block;width:100%;border:0;border-radius:16px;padding:15px 14px;font:600 19px Fredoka,system-ui,sans-serif;background:var(--acc);color:#fff;box-shadow:0 5px 0 var(--acc-d);cursor:pointer;margin-top:12px;-webkit-tap-highlight-color:transparent}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--acc-d)}
+.btn.sec{background:#fff;color:var(--ink);box-shadow:0 5px 0 #cfc8ee}
+.btn.sec:active{box-shadow:0 1px 0 #cfc8ee}
+.btn.teal{background:var(--teal);color:#063b37;box-shadow:0 5px 0 var(--teal-d)}
+.btn.teal:active{box-shadow:0 1px 0 var(--teal-d)}
+.btn.ghost{background:rgba(255,255,255,.14);box-shadow:none;color:#fff}
+.btn:disabled{opacity:.4;pointer-events:none}
+.row{display:flex;gap:10px}
+.row .btn{flex:1}
+.stepper{display:flex;align-items:center;justify-content:space-between;margin:8px 0 14px}
+.stepper .ctl{display:flex;align-items:center;gap:12px}
+.stepper button{width:42px;height:42px;border-radius:12px;border:0;background:#efeafd;color:var(--ink);font:700 22px Fredoka,sans-serif;cursor:pointer}
+.stepper b{font-size:24px;min-width:28px;text-align:center}
+.names input{width:100%;padding:12px 14px;border-radius:12px;border:2px solid #e6e1f8;font:500 17px Fredoka,sans-serif;margin:5px 0;color:var(--ink);background:#faf9ff}
+.names input:focus{outline:none;border-color:var(--teal)}
+.toggle{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:1px solid #eee}
+.switch{width:54px;height:32px;border-radius:99px;background:#ddd;position:relative;border:0;cursor:pointer;flex:none}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:26px;height:26px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.switch.on{background:var(--teal)}
+.switch.on::after{left:25px}
+.bigcard{background:#fff;color:var(--ink);border-radius:26px;padding:34px 20px;text-align:center;box-shadow:0 14px 40px rgba(0,0,0,.35);margin:18px 0;animation:pop .35s ease}
+.bigcard .emo{font-size:96px;line-height:1}
+.bigcard .word{font-size:36px;font-weight:700;margin-top:10px}
+@keyframes pop{from{transform:scale(.85) rotate(-3deg);opacity:0}to{transform:none;opacity:1}}
+.cover{background:repeating-linear-gradient(45deg,#ff8a3d,#ff8a3d 18px,#ff9d5c 18px,#ff9d5c 36px);color:#fff;border-radius:26px;padding:46px 20px;text-align:center;margin:18px 0;box-shadow:0 14px 40px rgba(0,0,0,.35)}
+.cover .emo{font-size:70px}
+.list{list-style:none;padding:0;margin:8px 0}
+.list li{display:flex;align-items:center;gap:12px;padding:12px;border-radius:14px;background:#f5f2ff;margin:7px 0;font-size:18px;font-weight:500}
+.list .num{width:32px;height:32px;border-radius:50%;background:var(--acc);color:#fff;display:grid;place-items:center;font-weight:700;flex:none}
+.list li.pick{cursor:pointer;border:2px solid transparent}
+.list li.pick:active{border-color:var(--acc)}
+.list li.dead{opacity:.45;text-decoration:line-through}
+.hourglass{display:flex;align-items:center;justify-content:center;gap:12px;font-size:30px;font-weight:700;margin:8px 0}
+.bar{height:10px;border-radius:99px;background:#eee;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--teal);transition:width 1s linear}
+.verdict{font-size:30px;font-weight:700;text-align:center;margin:4px 0}
+.fact{background:#f5f2ff;border-radius:14px;padding:12px 14px;margin-top:10px;font-size:16px}
+.fact b{color:var(--acc-d)}
+.ov{position:fixed;inset:0;background:rgba(10,6,30,.7);z-index:10;display:flex;align-items:flex-end;justify-content:center;animation:fade .2s}
+.ov .sheet{background:#fff;color:var(--ink);width:100%;max-width:480px;max-height:88vh;overflow:auto;border-radius:24px 24px 0 0;padding:22px 20px 30px;animation:up .25s ease}
+@keyframes fade{from{opacity:0}}
+@keyframes up{from{transform:translateY(40px);opacity:.5}}
+table{width:100%;border-collapse:collapse;font-size:15px}
+td,th{text-align:left;padding:8px 6px;border-bottom:1px solid #eee;vertical-align:top}
+th{font-size:13px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.5px}
+.sheet table{font-size:12.5px;table-layout:fixed}.sheet td,.sheet th{padding:6px 3px;hyphens:manual}.sheet th{font-size:11px;letter-spacing:0}
+.opt{display:block;width:100%;text-align:left;border:2px solid #e6e1f8;border-radius:14px;background:#faf9ff;padding:14px;font:500 18px Fredoka,sans-serif;color:var(--ink);margin:7px 0;cursor:pointer}
+.opt.right{border-color:var(--green);background:#e6f8ee}
+.opt.wrong{border-color:var(--red);background:#ffe9ed}
+.role{font-size:13px;font-weight:600;padding:3px 9px;border-radius:99px;margin-left:auto;flex:none}
+.role.civ{background:#e6f8ee;color:#16804a}.role.imp{background:#ffe9ed;color:#c3213f}.role.blank{background:#eee;color:#555}
+.torch svg{width:100%;height:auto;display:block}
+.beam{animation:beamIn 1.2s ease forwards;opacity:0}
+@keyframes beamIn{to{opacity:1}}
+.dot{animation:jig 1.6s ease-in-out infinite alternate}
+@keyframes jig{to{transform:translate(2px,-3px)}}
+.logo{font-size:64px;text-align:center;margin-top:6px}
+.small{font-size:14px}
+</style>
+</head>
+<body>
+<div class="bubbles" id="bubbles"></div>
+<div id="app"></div>
+<script>
+const PAIRS = [
+ {c:{n:"Fog",e:"🌫️",t:"Liquid aerosol",f:"Tiny liquid water droplets dispersed in air (gas)."}, i:{n:"Air",e:"💨",t:"Solution (gas mixture)",f:"Gases mixed at the molecular level: homogeneous, no light scattering."}},
+ {c:{n:"Smoke",e:"🔥",t:"Solid aerosol",f:"Tiny solid particles dispersed in air (gas)."}, i:{n:"Sand in water",e:"🏖️",t:"Suspension",f:"Coarse particles over 0.5 µm. They settle out and are retained by filter paper."}},
+ {c:{n:"Whipped cream",e:"🍦",t:"Foam",f:"Gas (air) dispersed in a liquid."}, i:{n:"Soda",e:"🥤",t:"Solution",f:"CO₂ dissolved in water. The fizz bubbles are far too big to be colloidal."}},
+ {c:{n:"Marshmallow",e:"🍡",t:"Solid foam",f:"Gas (air) dispersed in a solid."}, i:{n:"Sugar cube",e:"🍬",t:"Pure substance",f:"Just sugar crystals, with nothing dispersed in them."}},
+ {c:{n:"Jelly",e:"🍮",t:"Gel",f:"Liquid (water) held inside a solid gelatin network."}, i:{n:"Syrup",e:"🥞",t:"Solution",f:"Sugar dissolved in water: homogeneous, passes through a semipermeable membrane."}},
+ {c:{n:"Gelatin sol",e:"🧪",t:"Sol (lyophilic colloid)",f:"Gelatin molecules dispersed in water. A solvent-loving (hydrophilic) colloid."}, i:{n:"Sugar water",e:"🥄",t:"Solution",f:"Sugar dissolved down to molecules (under 1 nm)."}},
+ {c:{n:"Starch in water",e:"🌾",t:"Sol (lyophilic colloid)",f:"Starch dispersed in water. A hydrophilic colloid."}, i:{n:"Salt water",e:"🧂",t:"Solution",f:"Salt dissolved into ions. No Tyndall effect."}},
+ {c:{n:"Colloidal gold",e:"🔴",t:"Sol (lyophobic colloid)",f:"Gold particles dispersed in water. A solvent-hating colloid, red in colour."}, i:{n:"Copper sulfate solution",e:"🔵",t:"Solution",f:"Copper and sulfate ions dissolved in water: clear blue, no light scattering."}},
+ {c:{n:"Cranberry glass",e:"🍷",t:"Solid in solid",f:"Tiny gold particles dispersed in glass. That's what makes it red!"}, i:{n:"Window glass",e:"🪟",t:"Single-phase solid",f:"Plain glass with nothing dispersed in it."}},
+ {c:{n:"Soapy water",e:"🫧",t:"Association colloid",f:"Above the CMC, soap molecules group into micelles (about 5 nm)."}, i:{n:"Vinegar",e:"🫙",t:"Solution",f:"Acetic acid dissolved in water."}},
+ {c:{n:"Printing ink",e:"🖋️",t:"Sol",f:"Fine pigment particles dispersed in a liquid."}, i:{n:"Food colouring",e:"🎨",t:"Solution",f:"Dye molecules dissolved in water."}},
+ {c:{n:"Latex paint",e:"🖌️",t:"Sol",f:"Fine polymer particles dispersed in water."}, i:{n:"Muddy water",e:"🟤",t:"Suspension",f:"Coarse soil particles that settle out on standing."}},
+ {c:{n:"Albumin solution",e:"🩸",t:"Lyophilic colloid",f:"Albumin (a protein) is a hydrophilic colloid. Too big to pass a semipermeable membrane."}, i:{n:"Red blood cells in saline",e:"🔴",t:"Suspension",f:"Red blood cells are coarse particles, visible under an optical microscope."}},
+ {c:{n:"Insulin solution",e:"💉",t:"Lyophilic colloid",f:"Insulin (a protein) is a hydrophilic colloid."}, i:{n:"Glucose solution",e:"🍯",t:"Solution",f:"Glucose molecules are under 1 nm and pass through a semipermeable membrane."}},
+ {c:{n:"Dextran plasma substitute",e:"💧",t:"Lyophilic colloid",f:"A hydrophilic colloid used to restore blood volume."}, i:{n:"ORS drink",e:"🧃",t:"Solution",f:"Salts and glucose fully dissolved in water."}},
+];
+
+const QUESTIONS = [
+ "Would a strong light beam show a visible path (Tyndall cone) inside it?",
+ "If you leave it standing, do its particles settle out?",
+ "Is it homogeneous, dissolved down to molecules or ions?",
+ "Would its particles pass through filter paper?",
+ "Would its particles pass through a semipermeable membrane?",
+ "Could you see its particles with an ordinary optical microscope?",
+ "Are its particles between 1 and 500 nm?",
+ "Is it a gas dispersed in a liquid? (foam)",
+ "Is it a gas dispersed in a solid? (solid foam)",
+ "Is it liquid droplets dispersed in a gas? (liquid aerosol)",
+ "Is it solid particles dispersed in a gas? (solid aerosol)",
+ "Is it a liquid held inside a solid network? (gel)",
+ "Is it solid particles dispersed in a liquid? (sol)",
+ "Is it a solid dispersed in another solid?",
+ "Is it a true solution?",
+ "Is it a suspension (coarse dispersion)?",
+ "Is it a solvent-loving (lyophilic) colloid, like gelatin or starch in water?",
+];
+
+const S = {screen:'home', overlay:null, n:5, names:[], nImp:1, multi:false,
+  seed:0, code:'', players:[], pair:null, qOrder:[],
+  round:1, order:[], qTurn:0, qShown:false, answers:[],
+  torchUsed:false, torchTarget:null, lastOut:null, pending:null, steal:null, winner:null, timer:null, t:0,
+  // joiner
+  j:{code:'', n:0, nImp:1, seed:0, me:-1, round:1, show:false, qshow:false, err:''}};
+
+function store(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+function load(k){ try{ return JSON.parse(localStorage.getItem(k)||'null'); }catch(e){ return null; } }
+const savedNames = load('cu_names'); if(Array.isArray(savedNames)) S.names = savedNames;
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function mulberry(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+function shuffleR(a,r){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+const shuffle = a => shuffleR(a, Math.random);
+const maxImp = n => Math.max(1, Math.min(3, Math.floor(((n||S.n) - 1) / 2)));
+
+// ---------- the shared deal (same code => same game on every phone) ----------
+const NCH = '0123456789ABC';
+function makeCode(seed,n,imp){ return String(seed) + NCH[n] + imp; }
+function parseCode(code){
+  code = String(code||'').trim().toUpperCase().replace(/[^0-9A-C]/g,'');
+  if(code.length!==6) return null;
+  const seed = parseInt(code.slice(0,4),10), n = NCH.indexOf(code[4]), imp = parseInt(code[5],10);
+  if(!(seed>=1000) || n<3 || n>12 || !(imp>=1) || imp>maxImp(n)) return null;
+  return {seed,n,imp,code};
+}
+function deal(seed,n,imp){
+  const r = mulberry(seed*7919+n*31+imp);
+  const pair = PAIRS[Math.floor(r()*PAIRS.length)];
+  const idx = shuffleR([...Array(n).keys()], r);
+  const roles = Array(n).fill('civ'); for(let k=0;k<imp;k++) roles[idx[k]]='imp';
+  const qOrder = shuffleR([...QUESTIONS.keys()], r);
+  return {pair, roles, qOrder};
+}
+const questionFor = (qOrder,n,round,i) => QUESTIONS[qOrder[((round-1)*n + i) % qOrder.length]];
+
+function go(screen){ clearInterval(S.timer); S.timer=null; S.screen=screen; S.overlay=null; render(); window.scrollTo(0,0); }
+function openOv(o){ S.overlay=o; render(); }
+function closeOv(){ S.overlay=null; render(); }
+const nameOf = i => S.players[i].name;
+const cardOf = p => p.role==='civ' ? S.pair.c : S.pair.i;
+
+// ---------- host setup ----------
+function setN(d){ S.n = Math.min(12, Math.max(3, S.n + d)); S.nImp = Math.min(S.nImp, maxImp()); render(); }
+function setImp(d){ S.nImp = Math.min(maxImp(), Math.max(1, S.nImp + d)); render(); }
+function setName(i,v){ S.names[i]=v; store('cu_names',S.names); }
+
+function startGame(){
+  let seed; do { seed = 1000 + Math.floor(Math.random()*9000); } while(seed===S.seed);
+  S.seed=seed; S.code=makeCode(seed,S.n,S.nImp);
+  const d = deal(seed,S.n,S.nImp);
+  S.pair=d.pair; S.qOrder=d.qOrder;
+  S.players = [...Array(S.n).keys()].map(i => ({name:(S.names[i]||'').trim()||('Player '+(i+1)), role:d.roles[i], alive:true}));
+  S.round=1; S.torchUsed=false; S.winner=null; S.steal=null; S.answers=[];
+  if(S.multi){ go('lobby'); } else { S.revealIdx=0; S.revealShown=false; go('reveal'); }
+}
+
+function makeOrder(){
+  const alive = S.players.map((p,i)=>i).filter(i=>S.players[i].alive);
+  const k = Math.floor(Math.random()*alive.length);
+  S.order = alive.slice(k).concat(alive.slice(0,k));
+}
+function startQuestions(){ makeOrder(); S.qTurn=0; S.qShown=false; go('ask'); }
+const curQ = () => questionFor(S.qOrder, S.n, S.round, S.order[S.qTurn]);
+function answer(a){
+  S.answers.push({round:S.round, p:S.order[S.qTurn], q:curQ(), a});
+  S.qTurn++; S.qShown=false;
+  if(S.qTurn>=S.order.length) go('clue'); else { render(); window.scrollTo(0,0); }
+}
+function nextReveal(){
+  S.revealShown=false; S.revealIdx++;
+  if(S.revealIdx>=S.players.length) startQuestions(); else render();
+}
+
+// ---------- timer ----------
+function startTimer(){
+  clearInterval(S.timer); S.t=60; updTimer();
+  S.timer = setInterval(()=>{ S.t--; updTimer(); if(S.t<=0){ clearInterval(S.timer); S.timer=null; } },1000);
+}
+function updTimer(){
+  const el=$('tnum'), bar=$('tbar'); if(!el) return;
+  el.textContent = S.t>0 ? S.t+'s' : "Time's up!";
+  bar.style.width = (S.t/60*100)+'%';
+}
+
+// ---------- vote / steal ----------
+function confirmOut(){ const i=S.pending; S.players[i].alive=false; S.lastOut=i; S.pending=null; S.steal=null; go('out'); }
+function winCheck(){
+  const alive = S.players.filter(p=>p.alive);
+  const good = alive.filter(p=>p.role==='civ').length, bad = alive.length-good;
+  if(bad===0) return 'civ'; if(bad>=good) return 'imp'; return null;
+}
+function afterOut(){
+  const w = winCheck();
+  if(w){ S.winner = {side:w, how: w==='civ'?'caught':'outnumber'}; go('over'); }
+  else { S.round++; startQuestions(); }
+}
+function startSteal(){
+  const correct = S.pair.c.n;
+  const others = shuffle(PAIRS.map(p=>p.c.n).filter(n=>n!==correct)).slice(0,3);
+  S.steal = {opts: shuffle([correct,...others]), guess:null}; go('steal');
+}
+function guess(o){ if(S.steal.guess) return; S.steal.guess=o; render(); }
+function afterSteal(){
+  if(S.steal.guess===S.pair.c.n){ S.winner={side:'imp',how:'steal',by:S.lastOut}; go('over'); } else afterOut();
+}
+function torch(i){ S.torchUsed=true; S.torchTarget=i; go('torch'); }
+
+// ---------- joiner ----------
+function joinCode(){
+  const v = $('codein').value, c = parseCode(v);
+  if(!c){ S.j.err='That code doesn’t look right. It should be 6 characters, like 4821 5 1 (spaces optional).'; render(); return; }
+  Object.assign(S.j,{code:c.code,n:c.n,nImp:c.imp,seed:c.seed,me:-1,round:1,show:false,qshow:false,err:''});
+  go('pick');
+}
+function pickMe(i){ S.j.me=i; S.j.round=1; S.j.show=false; S.j.qshow=false; store('cu_join',S.j); go('mine'); }
+function jRound(d){ S.j.round=Math.max(1,S.j.round+d); S.j.qshow=false; store('cu_join',S.j); render(); }
+
+// ---------- views ----------
+function home(){
+  const resume = load('cu_join');
+  return `
+  <div class="logo">🧪🕵️</div>
+  <h1>UNDERCOLLOID!</h1>
+  <div class="sub">Everyone's holding a colloid… except the undercover impostor.</div>
+  <div class="panel">
+    <h3>📱 One phone, passed around</h3>
+    <p class="muted">The phone goes around the circle. Everyone peeks at their secret card, then answers a question on their turn. Can you spot whose answer doesn't fit?</p>
+  </div>
+  <button class="btn" onclick="S.multi=false;go('setup')">▶ Start a game</button>
+  <div class="row">
+    <button class="btn sec" onclick="openOv('how')">How to play</button>
+    <button class="btn sec" onclick="openOv('cheat')">Cheat sheet</button>
+  </div>
+  <details style="margin-top:18px;opacity:.85"><summary class="small">Playing on separate phones instead?</summary>
+    <button class="btn ghost" onclick="S.multi=true;go('setup')">👑 Host with a game code</button>
+    <button class="btn ghost" onclick="S.j.err='';go('join')">🙋 Join with a code</button>
+    ${resume && resume.me>=0 ? `<button class="btn ghost" onclick="Object.assign(S.j,load('cu_join'));go('mine')">↩︎ Back to my card (code ${esc(resume.code)})</button>`:''}
+  </details>`;
+}
+
+function setup(){
+  let inputs='';
+  for(let i=0;i<S.n;i++) inputs+=`<input placeholder="Player ${i+1}${i===0&&S.multi?' (you, the host)':''}" value="${esc(S.names[i]||'')}" oninput="setName(${i},this.value)" maxlength="16">`;
+  return `
+  <h2>${S.multi?'Host a game':'New game'}</h2>
+  <div class="panel">
+    <div class="toggle" style="border-top:0;padding-top:0"><div><h3>Everyone uses their own phone</h3><div class="muted small">${S.multi?'Players join with a code':'One phone gets passed around'}</div></div><button class="switch ${S.multi?'on':''}" onclick="S.multi=!S.multi;render()" aria-label="Own phones"></button></div>
+    <div class="stepper"><h3>Players</h3><div class="ctl"><button onclick="setN(-1)">−</button><b>${S.n}</b><button onclick="setN(1)">+</button></div></div>
+    <div class="names">${inputs}</div>
+  </div>
+  <div class="panel">
+    <div class="stepper" style="margin:0"><div><h3>Impostors 🫥</h3><div class="muted small">Get the non-colloid card</div></div><div class="ctl"><button onclick="setImp(-1)">−</button><b>${S.nImp}</b><button onclick="setImp(1)">+</button></div></div>
+  </div>
+  <button class="btn" onclick="startGame()">${S.multi?'Create game code 🔑':'Deal the cards 🃏'}</button>
+  <button class="btn ghost" onclick="go('home')">Back</button>`;
+}
+
+function lobby(){
+  const list = S.players.map((p,i)=>`<li><span class="num">${i+1}</span>${esc(p.name)}</li>`).join('');
+  const pretty = S.code.slice(0,4)+' '+S.code[4]+' '+S.code[5];
+  return `<h2 class="center">Game code</h2>
+  <div class="bigcard" style="padding:22px"><div class="muted">Everyone taps <b>Join</b> and types:</div>
+    <div class="word" style="font-size:46px;letter-spacing:4px">${pretty}</div></div>
+  <div class="panel"><h3>Then pick your number</h3><ul class="list">${list}</ul>
+    <p class="muted small">You're the host, so your card is under 👀 My card.</p></div>
+  <button class="btn sec" onclick="openOv('mycard')">👀 My card (${esc(nameOf(0))})</button>
+  <button class="btn" onclick="startQuestions()">Everyone has their card, start! ▶</button>`;
+}
+
+function reveal(){
+  const p=S.players[S.revealIdx];
+  const prog=`<div class="center"><span class="tag">Card ${S.revealIdx+1} of ${S.players.length}</span></div>`;
+  if(!S.revealShown) return `${prog}
+    <div class="cover"><div class="emo">📱</div><h2>Pass the phone to<br>${esc(p.name)}</h2><p>No peeking, everyone else! 👀</p></div>
+    <button class="btn teal" onclick="S.revealShown=true;render()">I'm ${esc(p.name)}, show my card</button>`;
+  const card = cardOf(p);
+  return `${prog}<div class="bigcard"><div class="emo">${card.e}</div><div class="word">${esc(card.n)}</div><p class="muted" style="margin-top:12px">Remember it. Don't say it out loud!</p></div>
+    <button class="btn" onclick="nextReveal()">Got it, hide & pass on</button>`;
+}
+
+function ask(){
+  const i=S.order[S.qTurn], name=esc(nameOf(i));
+  const prog=`<div class="center"><span class="tag">Round ${S.round} · Question ${S.qTurn+1} of ${S.order.length}</span></div>`;
+  const yesNo = who => `<p class="center" style="margin-top:14px">${who}</p><div class="row"><button class="btn teal" onclick="answer('Yes')">👍 Yes</button><button class="btn" style="background:var(--red);box-shadow:0 5px 0 #b8304a" onclick="answer('No')">👎 No</button></div>`;
+  if(S.multi){
+    const isHost = i===0;
+    return `${prog}
+    <div class="cover" style="background:repeating-linear-gradient(45deg,#3dd6c6,#3dd6c6 18px,#5fe0d3 18px,#5fe0d3 36px);color:#063b37">
+      <div class="emo">🎤</div><h2>${name}'s turn!</h2>
+      <p>${isHost?'Your question is below. Read it out loud and answer.':`${name}: open <b>My question</b> on your phone, read it out loud and answer Yes or No.`}</p></div>
+    ${isHost?`<div class="bigcard" style="padding:22px"><div class="word" style="font-size:26px;line-height:1.2">${esc(curQ())}</div></div>`:''}
+    ${yesNo(isHost?'Your answer:':`What did ${name} answer?`)}`;
+  }
+  if(!S.qShown) return `${prog}
+    <div class="cover" style="background:repeating-linear-gradient(45deg,#3dd6c6,#3dd6c6 18px,#5fe0d3 18px,#5fe0d3 36px);color:#063b37"><div class="emo">❓</div><h2>Give the phone to<br>${name}</h2><p>You have a question to answer!</p></div>
+    <button class="btn" onclick="S.qShown=true;render()">I'm ${name}, show my question</button>`;
+  return `${prog}
+    <div class="bigcard"><div class="emo" style="font-size:60px">🤔</div>
+    <p class="muted" style="margin-top:8px">${name}, think about YOUR card:</p>
+    <div class="word" style="font-size:28px;line-height:1.2">${esc(curQ())}</div>
+    <p class="muted small" style="margin-top:12px">Read it out loud, then answer. Impostor? You might need to bluff 😉</p></div>
+    ${yesNo('Your answer:')}`;
+}
+
+function clue(){
+  const board = r => S.answers.filter(x=>x.round===r).map(x=>`<li style="display:block"><b>${esc(nameOf(x.p))}</b><div class="small muted" style="margin:2px 0">${esc(x.q)}</div><span class="role ${x.a==='Yes'?'civ':'imp'}" style="margin:0">${x.a==='Yes'?'👍 Yes':'👎 No'}</span></li>`).join('');
+  let older=''; for(let r=S.round-1;r>=1;r--) older+=`<details style="margin-top:8px"><summary class="muted">Round ${r} answers</summary><ul class="list">${board(r)}</ul></details>`;
+  const out = S.players.filter(p=>!p.alive).map(p=>esc(p.name)).join(', ');
+  return `
+  <div class="center"><span class="tag">Round ${S.round}</span></div>
+  <h2 class="center" style="margin-top:10px">Answer board 📋</h2>
+  <div class="panel">
+    <p>Everyone has the same colloid… except the impostor. <b>Whose answer doesn't fit?</b></p>
+    <ul class="list">${board(S.round)}</ul>${older}
+    ${out?`<p class="muted small">Out: ${out}</p>`:''}
+  </div>
+  <div class="panel">
+    <h3>⏳ Discussion timer</h3>
+    <div class="hourglass"><span>⏳</span><span id="tnum">${S.timer?S.t+'s':'60s'}</span></div>
+    <div class="bar"><i id="tbar" style="width:${S.timer?S.t/60*100:100}%"></i></div>
+    <button class="btn sec" onclick="startTimer()">${S.timer?'Restart':'Start'} 60s discussion</button>
+  </div>
+  <button class="btn teal" onclick="go('torchpick')" ${S.torchUsed?'disabled':''}>🔦 Tyndall Torch ${S.torchUsed?'(used)':'(1 per game)'}</button>
+  <button class="btn" onclick="go('vote')">🗳️ Go to the vote</button>
+  <div class="row">${S.multi?`<button class="btn ghost" onclick="openOv('mycard')">👀 My card</button>`:''}<button class="btn ghost" onclick="openOv('cheat')">📖 Cheat sheet</button></div>`;
+}
+
+function vote(){
+  const items = S.players.map((p,i)=>p.alive?`<li class="pick" onclick="S.pending=${i};openOv('confirm')"><span class="num">?</span>${esc(p.name)}</li>`:'').join('');
+  return `<h2 class="center">Who's the impostor? 🗳️</h2>
+  <div class="panel"><p class="muted">Vote out loud (count down 3, 2, 1 and point!), then tap the player with the most votes.</p><ul class="list">${items}</ul></div>
+  <button class="btn ghost" onclick="go('clue')">Back to the answer board</button>`;
+}
+
+function out(){
+  const p=S.players[S.lastOut], card=cardOf(p);
+  const shown = border => `<div class="bigcard" style="padding:20px;margin:12px 0;box-shadow:none;border:2px solid ${border}"><div class="emo" style="font-size:60px">${card.e}</div><div class="word" style="font-size:26px">${esc(card.n)}</div></div>`;
+  if(p.role==='civ') return `<div class="panel"><div class="verdict" style="color:var(--green)">😇 Innocent!</div>
+      <p class="center"><b>${esc(p.name)}</b> had a real colloid.</p>${shown('#eee')}
+      <div class="fact"><b>${card.t}:</b> ${esc(card.f)}</div></div>
+      <button class="btn" onclick="afterOut()">Next round</button>`;
+  return `<div class="panel"><div class="verdict" style="color:var(--red)">🚨 Impostor caught!</div>
+      <p class="center"><b>${esc(p.name)}</b> was holding a NON-colloid:</p>${shown('#ffd0d9')}
+      <div class="fact"><b>Not a colloid, it's a ${card.t.toLowerCase()}:</b> ${esc(card.f)}</div></div>
+      <button class="btn" onclick="startSteal()">Last chance: steal the win 🎯</button>`;
+}
+
+function steal(){
+  const p=S.players[S.lastOut], g=S.steal.guess, correct=S.pair.c.n;
+  const opts=S.steal.opts.map(o=>{
+    let cls=''; if(g){ if(o===correct) cls='right'; else if(o===g) cls='wrong'; }
+    return `<button class="opt ${cls}" onclick='guess(${JSON.stringify(o)})'>${esc(o)}</button>`;
+  }).join('');
+  const res = !g ? '' : g===correct
+    ? `<div class="verdict" style="color:var(--green);margin-top:12px">🎯 Stolen!</div><p class="center">${esc(p.name)} guessed the colloid. Impostors win!</p><button class="btn" onclick="afterSteal()">See results</button>`
+    : `<div class="verdict" style="color:var(--red);margin-top:12px">❌ Nope!</div><p class="center">The steal failed.</p><button class="btn" onclick="afterSteal()">Continue</button>`;
+  return `<h2 class="center">🎯 Steal attempt</h2>
+  <div class="panel"><p><b>${esc(p.name)}</b>: everyone else is holding the same colloid. Guess it right and your team wins!</p>${opts}${res}</div>`;
+}
+
+function torchPick(){
+  const items = S.players.map((p,i)=>p.alive?`<li class="pick" onclick="torch(${i})"><span class="num">🔦</span>${esc(p.name)}</li>`:'').join('');
+  return `<h2 class="center">🔦 Tyndall Torch</h2>
+  <div class="panel"><p>Shine a light through one player's substance. <b>Colloids scatter light</b>, so you'll see the beam. Solutions don't scatter light, and suspensions are coarse: they may scatter light or be opaque, and they settle.</p>
+  <p class="muted small">You only get one torch per game. Choose wisely!</p><ul class="list">${items}</ul></div>
+  <button class="btn ghost" onclick="go('clue')">Cancel</button>`;
+}
+
+function torchView(){
+  const p=S.players[S.torchTarget], isC=p.role==='civ', isS=!isC && S.pair.i.t==='Suspension';
+  const liquid = `<rect x="128" y="62" width="74" height="76" rx="4" fill="${isC?'#f4ecd9':isS?'#8a6239':'#d9f1ff'}" opacity="${isC?'.95':isS?'.9':'.6'}"/>`;
+  let dots='';
+  if(isC){ for(let k=0;k<26;k++){ const x=134+Math.random()*62, y=68+Math.random()*64; dots+=`<circle class="dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(1+Math.random()*1.6).toFixed(1)}" fill="#c9b78f" style="animation-delay:${(Math.random()*1.5).toFixed(2)}s"/>`; } }
+  const beamInside = isC ? `<polygon class="beam" points="128,90 202,84 202,112 128,106" fill="url(#bg)"/>` : '';
+  const svg = `<svg viewBox="0 0 300 170" aria-hidden="true">
+    <defs><linearGradient id="bg" x1="0" x2="1"><stop offset="0" stop-color="#fff6a8" stop-opacity=".95"/><stop offset="1" stop-color="#ffe14d" stop-opacity=".7"/></linearGradient>
+    <radialGradient id="spot"><stop offset="0" stop-color="#fff59a"/><stop offset="1" stop-color="#fff59a" stop-opacity="0"/></radialGradient></defs>
+    <rect x="0" y="0" width="300" height="170" rx="16" fill="#140f33"/>
+    <rect x="14" y="84" width="46" height="22" rx="5" fill="#8a8fa8"/><rect x="58" y="80" width="14" height="30" rx="3" fill="#b7bccf"/><circle cx="36" cy="95" r="4" fill="#ff8a3d"/>
+    <polygon points="72,86 128,90 128,106 72,104" fill="#fff6a8" opacity=".08"/>
+    ${liquid}${dots}${beamInside}
+    <path d="M124 36 v102 a6 6 0 0 0 6 6 h70 a6 6 0 0 0 6 -6 v-102" fill="none" stroke="#e9e6ff" stroke-width="3"/>
+    ${isS?'':'<polygon points="206,86 278,80 278,116 206,110" fill="#fff6a8" opacity=".06"/><circle cx="284" cy="98" r="16" fill="url(#spot)"/>'}<rect x="290" y="50" width="6" height="96" fill="#3a3366"/>
+  </svg>`;
+  const msg = isC
+    ? `<div class="verdict" style="color:#d49b00">✨ The beam lights up!</div><p class="center">${esc(p.name)}'s substance <b>scatters light</b>. It's a <b>colloid</b>.</p>`
+    : isS
+    ? `<div class="verdict" style="color:var(--red)">🟤 Too coarse!</div><p class="center">${esc(p.name)}'s particles are over 0.5 µm. They make it opaque and settle out on standing. It's a <b>suspension</b>, not a colloid!</p>`
+    : `<div class="verdict" style="color:var(--red)">😶 No beam!</div><p class="center">The light passes straight through ${esc(p.name)}'s substance. <b>Not a colloid!</b></p>`;
+  return `<h2 class="center">🔦 Tyndall Torch</h2><div class="panel torch">${svg}<div style="margin-top:12px">${msg}</div></div>
+  <button class="btn" onclick="go('clue')">Back to the answer board</button>`;
+}
+
+function over(){
+  const w=S.winner, civWin=w.side==='civ';
+  const why = civWin ? 'Every impostor was caught.' : w.how==='steal' ? `${esc(nameOf(w.by))} stole the win by guessing the colloid!` : 'The impostors survived and outnumbered the crew.';
+  const roles = S.players.map(p=>{ const c=cardOf(p); return `<li>${c.e} ${esc(p.name)}<span class="role ${p.role}">${p.role==='civ'?'Colloid':'Impostor'}</span></li>`; }).join('');
+  return `<div class="logo">${civWin?'🏆':'😈'}</div><h1>${civWin?'🎉 Colloid crew wins!':'🫥 Impostors win!'}</h1><div class="sub">${why}</div>
+  <div class="panel">
+    <h3>The science</h3>
+    <div class="fact"><b>${S.pair.c.e} ${esc(S.pair.c.n)}: COLLOID (${S.pair.c.t})</b><br>${esc(S.pair.c.f)}</div>
+    <div class="fact"><b>${S.pair.i.e} ${esc(S.pair.i.n)}: NOT a colloid (${S.pair.i.t})</b><br>${esc(S.pair.i.f)}</div>
+  </div>
+  <div class="panel"><h3>Who was who</h3><ul class="list">${roles}</ul></div>
+  <button class="btn" onclick="startGame()">Play again ${S.multi?'(new code)':'(new cards)'}</button>
+  <button class="btn ghost" onclick="go('setup')">Change players</button>`;
+}
+
+// ----- joiner views -----
+function join(){
+  return `<h2>Join a game</h2>
+  <div class="panel"><p class="muted">Type the code shown on the host's phone.</p>
+    <div class="names"><input id="codein" inputmode="text" autocomplete="off" placeholder="e.g. 4821 5 1" style="font-size:26px;text-align:center;letter-spacing:3px" value="${esc(S.j.code||'')}" onkeydown="if(event.key==='Enter')joinCode()"></div>
+    ${S.j.err?`<p style="color:var(--red)">${esc(S.j.err)}</p>`:''}
+    <button class="btn" onclick="joinCode()">Join ▶</button></div>
+  <button class="btn ghost" onclick="go('home')">Back</button>`;
+}
+function pick(){
+  let b=''; for(let i=1;i<S.j.n;i++) b+=`<li class="pick" onclick="pickMe(${i})"><span class="num">${i+1}</span>Player ${i+1}</li>`;
+  return `<h2 class="center">Which number are you?</h2>
+  <div class="panel"><p class="muted">Check the list on the host's phone. (Player 1 is the host.)</p><ul class="list">${b}</ul></div>
+  <button class="btn ghost" onclick="go('join')">Back</button>`;
+}
+function mine(){
+  const J=S.j, d=deal(J.seed,J.n,J.nImp), card = d.roles[J.me]==='civ'? d.pair.c : d.pair.i;
+  const q = questionFor(d.qOrder, J.n, J.round, J.me);
+  return `<div class="center"><span class="tag">Game ${esc(J.code)} · You are Player ${J.me+1}</span></div>
+  ${J.show
+    ? `<div class="bigcard"><div class="emo">${card.e}</div><div class="word">${esc(card.n)}</div><p class="muted" style="margin-top:12px">Remember it. Don't say it out loud!</p></div>
+       <button class="btn sec" onclick="S.j.show=false;render()">🙈 Hide my card</button>`
+    : `<div class="cover"><div class="emo">🃏</div><h2>Your secret card</h2><p>Make sure nobody is looking 👀</p></div>
+       <button class="btn sec" onclick="S.j.show=true;render()">👀 Show my card</button>`}
+  <div class="panel">
+    <div class="stepper" style="margin:0 0 6px"><h3>❓ My question</h3><div class="ctl"><button onclick="jRound(-1)">−</button><b style="font-size:16px;min-width:70px">Round ${J.round}</b><button onclick="jRound(1)">+</button></div></div>
+    <p class="muted small">Wait until the host says it's your turn. Make sure the round matches the host's screen.</p>
+    ${J.qshow
+      ? `<div class="fact" style="font-size:22px;font-weight:600;text-align:center;padding:18px">${esc(q)}</div><p class="muted small center">Read it out loud and answer Yes or No. Impostor? Bluff 😉</p>`
+      : `<button class="btn teal" onclick="S.j.qshow=true;render()">It's my turn, show my question</button>`}
+  </div>
+  <button class="btn ghost" onclick="openOv('cheat')">📖 Cheat sheet</button>
+  <button class="btn ghost" onclick="go('home')">Leave game</button>`;
+}
+
+function overlay(){
+  if(!S.overlay) return '';
+  let c='';
+  if(S.overlay==='mycard'){ const card=cardOf(S.players[0]); c=`<div class="center"><div style="font-size:90px">${card.e}</div><h2>${esc(card.n)}</h2><p class="muted">Your secret card. Don't say it out loud!</p></div><button class="btn" onclick="closeOv()">🙈 Hide</button>`; }
+  if(S.overlay==='cheat') c=`<h2>📖 Cheat sheet</h2>
+    <table><tr><th></th><th>Solution</th><th>Colloid</th><th>Suspension</th></tr>
+    <tr><td><b>Size</b></td><td>0.01–1 nm</td><td><b>1–500 nm</b></td><td>Over 500 nm</td></tr>
+    <tr><td><b>Mixture</b></td><td>Homo&shy;geneous</td><td>Hetero&shy;geneous</td><td>Hetero&shy;geneous</td></tr>
+    <tr><td><b>Settles?</b></td><td>No</td><td>No</td><td>Yes</td></tr>
+    <tr><td><b>Filter paper</b></td><td>Passes</td><td>Passes</td><td>Retained</td></tr>
+    <tr><td><b>Semi&shy;permeable membrane</b></td><td>Passes</td><td>Doesn't pass</td><td>Doesn't pass</td></tr>
+    <tr><td><b>Light</b></td><td>No scattering</td><td><b>Tyndall effect ✨</b></td><td>May scatter or be opaque</td></tr>
+    <tr><td><b>Optical microscope</b></td><td>Not seen</td><td>Not seen (needs ultra&shy;microscope)</td><td>Seen</td></tr>
+    <tr><td><b>Example</b></td><td>Salt water</td><td>Gelatin, gold sol, fog</td><td>Sand, RBCs</td></tr></table>
+    <h3 style="margin-top:14px">Types of colloid (dispersed phase in medium)</h3>
+    <table>
+    <tr><td><b>Foam</b></td><td>Gas in liquid</td><td>Whipped cream</td></tr>
+    <tr><td><b>Solid foam</b></td><td>Gas in solid</td><td>Aerogel, marshmallow</td></tr>
+    <tr><td><b>Liquid aerosol</b></td><td>Liquid in gas</td><td>Fog, clouds, hair spray</td></tr>
+    <tr><td><b>Solid aerosol</b></td><td>Solid in gas</td><td>Smoke, dust in air</td></tr>
+    <tr><td><b>Gel</b></td><td>Liquid in solid</td><td>Jelly</td></tr>
+    <tr><td><b>Sol</b></td><td>Solid in liquid</td><td>Gelatin, gold sol</td></tr>
+    <tr><td><b>Solid in solid</b></td><td>Solid in solid</td><td>Cranberry glass</td></tr></table>
+    <h3 style="margin-top:14px">3 families</h3>
+    <p class="small"><b>Lyophilic</b> (solvent-loving): gelatin, starch, acacia, insulin, albumin. <b>Lyophobic</b> (solvent-hating): gold, silver, sulfur. <b>Association</b>: micelles of soaps and detergents above the CMC.</p>
+    <button class="btn" onclick="closeOv()">Close</button>`;
+  if(S.overlay==='how') c=`<h2>How to play</h2>
+    <p><b>1. Get your card:</b> Pass the phone around. Each player peeks at their secret card. Everyone gets the same colloid, except the impostor, who gets a non-colloid.</p>
+    <p><b>2. Questions:</b> The phone tells you who to pass it to ("Give the phone to Maria"). Maria gets a question about her card, reads it out loud and taps Yes or No.</p>
+    <p><b>3. Vote:</b> Check the answer board. Whose answer doesn’t fit? Talk it over, then vote them out.</p>
+    <p><b>4. Win:</b> Catch the impostor and the team wins. A caught impostor gets one last chance to win by guessing the colloid.</p>
+    <p><b>🔦 Bonus:</b> Once per game, shine the Tyndall Torch on someone to check whether their card is a colloid.</p>
+    <button class="btn" onclick="closeOv()">Let's go!</button>`;
+  if(S.overlay==='confirm') c=`<h2>Vote out ${esc(nameOf(S.pending))}?</h2><p class="muted">Their card will be revealed to everyone.</p>
+    <div class="row"><button class="btn sec" onclick="S.pending=null;closeOv()">Cancel</button><button class="btn" id="voteyes" onclick="confirmOut()">Vote out</button></div>`;
+  return `<div class="ov" onclick="if(event.target===this){S.pending=null;closeOv()}"><div class="sheet">${c}</div></div>`;
+}
+
+const VIEWS={home,setup,lobby,reveal,ask,clue,vote,out,steal,torchpick:torchPick,torch:torchView,over,join,pick,mine};
+function render(){ $('app').innerHTML = VIEWS[S.screen]() + overlay(); if(S.screen==='clue' && S.timer) updTimer(); }
+
+(function(){ const b=$('bubbles'); let h=''; for(let i=0;i<14;i++){ const s=10+Math.random()*40; h+=`<span style="left:${Math.random()*100}%;width:${s}px;height:${s}px;animation-duration:${12+Math.random()*16}s;animation-delay:-${Math.random()*20}s"></span>`; } b.innerHTML=h; })();
+render();
+</script>
+</body>
+</html>
